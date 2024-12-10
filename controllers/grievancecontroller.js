@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const { uploadFile, deleteFile } = require("../middlewares/cloudinary");
 const { generateCustomId } = require("../middlewares/generateCustomId");
 const Grievances = require("../models/Grievance");
@@ -5,10 +6,23 @@ const Student = require("../models/Students");
 
 exports.createNewGrievance = async (req, res) => {
   try {
-    const { studentId, remarks, description, status, type } = req.body;
+    const {
+      studentId,
+      remarks,
+      description,
+      status = "Pending",
+      type,
+    } = req.body;
     if (studentId) {
       const student = await Student.findOne({
-        $or: [{ studentId: studentId }, { _id: studentId }],
+        $or: [
+          { studentId: studentId },
+          {
+            _id: mongoose.Types.ObjectId.isValid(studentId)
+              ? studentId
+              : undefined,
+          },
+        ],
       });
       if (!student) {
         return res.status(404).json({ message: "Student not found" });
@@ -45,6 +59,7 @@ exports.createNewGrievance = async (req, res) => {
     const savedGrievance = await newGrievance.save();
     res.status(201).json({ ...savedGrievance });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -95,7 +110,10 @@ exports.updateGrievances = async (req, res) => {
     const { status } = req.body;
     const { id } = req.params;
     const grievance = await Grievances.findOne({
-      $or: [{ grievanceId: id }, { _id: id }],
+      $or: [
+        { grievanceId: id },
+        { _id: mongoose.Types.ObjectId.isValid(id) ? id : undefined },
+      ],
     });
     if (!grievance) {
       return res.status(404).json({ message: "Grievance not found" });
@@ -112,7 +130,10 @@ exports.deleteGrievance = async (req, res) => {
   try {
     const { id } = req.params;
     const grievance = await Grievances.findOne({
-      $or: [{ grievanceId: id }, { _id: id }],
+      $or: [
+        { grievanceId: id },
+        { _id: mongoose.Types.ObjectId.isValid(id) ? id : undefined },
+      ],
     });
     if (!grievance) {
       return res

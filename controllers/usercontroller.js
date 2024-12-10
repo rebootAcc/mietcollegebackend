@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const { generateCustomId } = require("../middlewares/generateCustomId");
 const { generateToken, verifyToken } = require("../middlewares/jsonToken");
 const User = require("../models/User");
@@ -78,7 +79,10 @@ exports.deleteUser = async (req, res) => {
 
   try {
     const deletedUser = await User.findOneAndDelete({
-      $or: [{ userId }, { _id: userId }],
+      $or: [
+        { userId },
+        { _id: mongoose.Types.ObjectId.isValid(userId) ? userId : undefined },
+      ],
     });
 
     if (!deletedUser) {
@@ -103,7 +107,7 @@ exports.getUserByToken = async (req, res) => {
     if (!decodedToken) {
       return res.status(404).json({ message: "Invalid token" });
     }
-    
+
     res.status(200).json(decodedToken._doc);
   } catch (error) {
     res.status(500).json({

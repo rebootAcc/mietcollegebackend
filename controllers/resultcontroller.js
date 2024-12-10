@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const { uploadFile } = require("../middlewares/cloudinary");
 const { generateCustomId } = require("../middlewares/generateCustomId");
 const Result = require("../models/Results");
@@ -90,7 +91,10 @@ exports.updateResult = async (req, res) => {
     const { studentId } = req.body;
     const { id } = req.params;
     const requestedResult = await Result.findOne({
-      $or: [{ resultId: id }, { _id: id }],
+      $or: [
+        { resultId: id },
+        { _id: mongoose.Types.ObjectId.isValid(id) ? id : undefined },
+      ],
     });
     if (!requestedResult) {
       return res.status(404).json({ message: "Result not found" });

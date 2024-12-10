@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const { generateCustomId } = require("../middlewares/generateCustomId");
 const Referal = require("../models/Referral");
 const Student = require("../models/Students");
@@ -22,7 +23,10 @@ exports.createNewRefer = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
     const student = await Student.findOne({
-      $or: [{ studentId: referee }, { _id: referee }],
+      $or: [
+        { studentId: referee },
+        { _id: mongoose.Types.ObjectId.isValid(referee) ? referee : undefined },
+      ],
     });
 
     if (!student) {
@@ -90,7 +94,12 @@ exports.deleteReferal = async (req, res) => {
   try {
     const { id } = req.params;
     const referal = await Referal.findOne({
-      $or: [{ referalId: id, _id: id }],
+      $or: [
+        {
+          referalId: id,
+          _id: mongoose.Types.ObjectId.isValid(id) ? id : undefined,
+        },
+      ],
     });
     if (!referal) {
       return res

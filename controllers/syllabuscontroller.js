@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const { uploadFile, deleteFile } = require("../middlewares/cloudinary");
 const { generateCustomId } = require("../middlewares/generateCustomId");
 const Syllabus = require("../models/Syllabus");
@@ -63,7 +64,7 @@ exports.deleteSyllabus = async (req, res) => {
     }
     const { id } = req.params;
     const requestedSyllabus = await Syllabus.findOne({
-      $or: [{ syllabusId: id }, { _id: id }],
+      $or: [{ syllabusId: id }, { _id: mongoose.Types.ObjectId.isValid(id) ? id : undefined }],
     });
     const { publicId } = requestedSyllabus.syllabusFile;
     const deleteResult = await deleteFile(publicId);

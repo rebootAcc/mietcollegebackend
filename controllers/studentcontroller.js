@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const { uploadFile, deleteFile } = require("../middlewares/cloudinary");
 const { generateCustomId } = require("../middlewares/generateCustomId");
 const { generateToken, verifyToken } = require("../middlewares/jsonToken");
@@ -96,7 +97,10 @@ exports.addProfilePicture = async (req, res) => {
     }
 
     const student = await Student.findOne({
-      $or: [{ studentId: id }, { _id: id }],
+      $or: [
+        { studentId: id },
+        { _id: mongoose.Types.ObjectId.isValid(id) ? id : undefined },
+      ],
     });
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
@@ -124,7 +128,10 @@ exports.updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
     const student = await Student.findOne({
-      $or: [{ studentId: id }, { _id: id }],
+      $or: [
+        { studentId: id },
+        { _id: mongoose.Types.ObjectId.isValid(id) ? id : undefined },
+      ],
     });
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
@@ -142,7 +149,10 @@ exports.deleteStudent = async (req, res) => {
   try {
     const { id } = req.params;
     const student = await Student.findOne({
-      $or: [{ studentId: id }, { _id: id }],
+      $or: [
+        { studentId: id },
+        { _id: mongoose.Types.ObjectId.isValid(id) ? id : undefined },
+      ],
     });
     if (!student) {
       return res

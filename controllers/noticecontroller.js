@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const { uploadFile, deleteFile } = require("../middlewares/cloudinary");
 const { generateCustomId } = require("../middlewares/generateCustomId");
 const Notice = require("../models/Notice");
@@ -78,7 +79,10 @@ exports.deleteNotice = async (req, res) => {
   try {
     const { id } = req.params;
     const notice = await Notice.findOne({
-      $or: [{ noticeId: id }, { _id: id }],
+      $or: [
+        { noticeId: id },
+        { _id: mongoose.Types.ObjectId.isValid(id) ? id : undefined },
+      ],
     });
     if (!notice) {
       return res
@@ -86,7 +90,7 @@ exports.deleteNotice = async (req, res) => {
         .json({ message: "Notice not found", success: false });
     }
     await deleteFile(notice.attachements.publicId);
-    await Notice.findOneAndDelete(notice._id);
+    await Notice.findByIdAndDelete(notice._id);
     res
       .status(200)
       .json({ message: "Notice deleted successfully", success: true });

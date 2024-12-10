@@ -1,3 +1,4 @@
+const { default: mongoose } = require("mongoose");
 const { uploadFile, deleteFile } = require("../middlewares/cloudinary");
 const { generateCustomId } = require("../middlewares/generateCustomId");
 const ExamSchedule = require("../models/ExamSchedule");
@@ -86,7 +87,7 @@ exports.deleteExamSchedule = async (req, res) => {
   try {
     const { id } = req.params;
     const requestedExamSchedule = await ExamSchedule.findOne({
-      $or: [{ syllabusId: id }, { _id: id }],
+      $or: [{ syllabusId: id }, { _id: mongoose.Types.ObjectId.isValid(id) ? id : undefined }],
     });
     const { publicId } = requestedExamSchedule.examScheduleFile;
     const deleteResult = await deleteFile(publicId);
