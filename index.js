@@ -15,7 +15,7 @@ const grievanceRouter = require("./routes/grievancerouter");
 const noticeRouter = require("./routes/noticerouter");
 const referRouter = require("./routes/referrouter");
 require("dotenv").config();
-const port = process.env.PORT;
+const port = process.env.PORT || 8080;
 MongoDbConnect();
 
 const tempDir = path.join(__dirname, "temp");
@@ -43,6 +43,6 @@ app.get("/api/", async (req, res) => {
   return res.status(200).send("Hello World! from MIET College Backend");
 });
 
-app.listen(port, () => {
+app.listen(port, "0.0.0.0", () => {
   console.log(`Port starts on ${port}`);
 });
