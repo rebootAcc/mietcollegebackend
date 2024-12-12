@@ -6,12 +6,25 @@ const Student = require("../models/Students");
 
 exports.createNewResult = async (req, res) => {
   try {
-    const { department, trade, semester, student } = req.body;
-    if (!department || !semester || !trade || !student) {
+    const { semester, student } = req.body;
+    console.log(req.body);
+
+    if (!semester || !student) {
       return res.status(400).json({ message: "All fields are required" });
     }
     if (!req.files || Object.keys(req.files).length === 0) {
       return res.status(400).send("files are required");
+    }
+
+    const reqStudent = await Student.findOne({
+      $or: [
+        { studentId: student },
+        { _id: mongoose.Types.ObjectId.isValid(student) ? student : undefined },
+      ],
+    });
+
+    if (!reqStudent) {
+      return res.status(404).json({ message: "Student not found" });
     }
 
     let uploadedFile = req.files.file;
@@ -24,12 +37,12 @@ exports.createNewResult = async (req, res) => {
 
     const newResult = new Result({
       resultId,
-      department,
-      trade,
+      department: reqStudent.department,
+      trade: reqStudent.trade,
       semester,
-      student,
+      student: reqStudent._id,
       resultFile: {
-        fileName: "result-" + semester + "-" + department,
+        fileName: "result-" + semester + "-" + reqStudent.department,
         path: uploadResult.secure_url,
         publicId: uploadResult.public_id,
       },
@@ -37,8 +50,15 @@ exports.createNewResult = async (req, res) => {
 
     const savedResult = await newResult.save();
 
-    Student.findByIdAndUpdate(
-      student,
+    Student.findOneAndUpdate(
+      {
+        $or: [
+          { studentId: student },
+          {
+            _id: mongoose.Types.ObjectId.isValid(student) ? student : undefined,
+          },
+        ],
+      },
       { $push: { results: savedResult._id } },
       { new: true }
     );
